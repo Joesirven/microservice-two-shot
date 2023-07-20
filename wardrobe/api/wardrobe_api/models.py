@@ -22,6 +22,7 @@ class Bin(models.Model):
     bin_number = models.PositiveSmallIntegerField()
     bin_size = models.PositiveSmallIntegerField()
 
+
     def get_api_url(self):
         return reverse("api_bin", kwargs={"pk": self.pk})
 
