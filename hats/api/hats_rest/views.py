@@ -4,26 +4,34 @@ from django.views.decorators.http import require_http_methods
 import json
 
 from common.json import ModelEncoder
-from .models import Hat, BinVO
+from .models import Hat, LocationVO
 
 # Create your views here.
+
+
+class LocationVOEncoder(ModelEncoder):
+    model = LocationVO
+    properties = [
+        "closet_name",
+        "section_number",
+        "shelf_number",
+        "import_href",
+    ]
+
+
 class HatEncoder(ModelEncoder):
     model = Hat
     properties = [
         "id",
-        "manufacturer",
+        "fabric",
+        "style",
         "color",
-        "picture",
-        "bin",
+        "picture_url",
+        "wardrobe_location",
     ]
-
-class BinEncoder(ModelEncoder):
-    model = BinVO
-    properties = [
-        "closet_name",
-        "bin_number",
-        "import_href"
-    ]
+    encoders = {
+        "wardrobe_location": LocationVOEncoder()
+    }
 
 
 @require_http_methods(["GET", "POST"])
@@ -33,11 +41,11 @@ def api_hats(request):
     the wardrobe.
 
     GET:
-    Returns a dictionary with a single key "Hats" which
+    Returns a dictionary with a single key "hats" which
     is a list of the fabric, style, color, and picture, along with its href and id.
 
     {
-        "Hats": [
+        "hats": [
             {
                 "id": database id for the location,
                 "manufacturer": Hat's manufacturer,
@@ -51,7 +59,7 @@ def api_hats(request):
     }
 
     POST:
-    Creates a hat resource and returns its details.
+    Creates a Hat resource and returns its details.
     {
         "manufacturer": Hat's manufacturer,
         "model_name": the model name of the Hat,
@@ -65,17 +73,21 @@ def api_hats(request):
             {"hats": hats},
             encoder=HatEncoder,
         )
-    else: #POST
+    else:  #POST
+        content = json.loads(request.body)
+        locationvo = LocationVO.objects.all()
+        print(locationvo)
         try:
-            content = json.loads(request.body)
-            href = f"/api/bins/{content['bin']}/"
-            binvo_object = BinVO.object.get(import_href=href)
-        except BinVO.DoesNotExist:
+            href = f"/api/locations/{content['wardrobe_location']}/"
+            print(href)
+            location_vo_object = LocationVO.objects.get(import_href=href)
+            print(location_vo_object)
+            content["wardrobe_location"] = location_vo_object
+        except LocationVO.DoesNotExist:
             return JsonResponse(
                 {"message": "Bin object does not exist"},
                 status=400,
             )
-        content["bin"] = binvo_object
         hat = Hat.objects.create(**content)
         return JsonResponse(
             hat,
@@ -85,7 +97,7 @@ def api_hats(request):
 
 
 @require_http_methods(["DELETE", "GET", "PUT"])
-def api_Hat(request, pk):
+def api_hat(request, pk):
     """
     Single-object API for the Hat resource.
 
@@ -116,9 +128,9 @@ def api_Hat(request, pk):
     """
     if request.method == "GET":
         try:
-            Hat = Hat.objects.get(id=pk)
+            hat = Hat.objects.get(id=pk)
             return JsonResponse(
-                Hat,
+                hat,
                 encoder=HatEncoder,
                 safe=False
             )
@@ -128,10 +140,10 @@ def api_Hat(request, pk):
             return response
     elif request.method == "DELETE":
         try:
-            Hat = Hat.objects.get(id=pk)
-            Hat.delete()
+            hat = Hat.objects.get(id=pk)
+            hat.delete()
             return JsonResponse(
-                Hat,
+                hat,
                 encoder=HatEncoder,
                 safe=False,
             )
@@ -140,15 +152,15 @@ def api_Hat(request, pk):
     else: # PUT
         try:
             content = json.loads(request.body)
-            Hat = Hat.objects.get(id=pk)
+            hat = Hat.objects.get(id=pk)
 
             props = ["manufacturer", "model_name", "color", "picture",]
             for prop in props:
                 if prop in content:
-                    setattr(Hat, prop, content[prop])
-            Hat.save()
+                    setattr(hat, prop, content[prop])
+            hat.save()
             return JsonResponse(
-                Hat,
+                hat,
                 encoder=HatEncoder,
                 safe=False,
             )
