@@ -8,21 +8,17 @@ class BinVO(models.Model):
     bin_number = models.PositiveSmallIntegerField()
     bin_size = models.PositiveSmallIntegerField()
     import_href = models.CharField(max_length=200, unique=True,)
-    # "id": database id for the bin,
-    # "closet_name": bin's closet name,
-    # "bin_number": the number of the bin,
-    # "bin_size": the size of the bin,
-    # "href": URL to the bin,
 
     def __str__(self):
         return f"{self.closet_name} - {self.bin_number}/{self.bin_size}"
+
 
 class Shoe(models.Model):
     manufacturer = models.CharField(max_length=200,)
     model_name = models.CharField(max_length=200,)
     color = models.CharField(max_length=50,)
     picture = models.URLField()
-    bin = models.ForeignKey(BinVO, on_delete=models.CASCADE,)
+    bin = models.ForeignKey(BinVO, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.manufacturer} {self.model_name} - {self.color}"
