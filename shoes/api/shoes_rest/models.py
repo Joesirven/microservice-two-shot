@@ -18,7 +18,7 @@ class Shoe(models.Model):
     model_name = models.CharField(max_length=200,)
     color = models.CharField(max_length=50,)
     picture = models.URLField()
-    bin = models.ForeignKey(BinVO, on_delete=models.CASCADE)
+    bin = models.ForeignKey(BinVO, on_delete=models.CASCADE, related_name="shoe")
 
     def __str__(self):
         return f"{self.manufacturer} {self.model_name} - {self.color}"

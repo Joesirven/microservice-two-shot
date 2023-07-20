@@ -9,10 +9,16 @@ function App() {
       <div className="container">
         <Routes>
           <Route path="/" element={<MainPage />} />
+          <Route path="shoes" element={<MainPage />} />
+            <Route path="new" element={<ShoeForm />} />
+            <Route path="details" element={<ShoeDetails />} />
+          </Route>
+
         </Routes>
       </div>
     </BrowserRouter>
   );
 }
+
 
 export default App;
